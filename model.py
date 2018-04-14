@@ -21,12 +21,18 @@ class ProbNet:
 
 			#global variables
 			with tf.variable_scope('Global Variables'):
-				side2move = #1 bit (everything is really just floats)
-				castlingRights = #4 bits
-				numOfEachPieceType = #array of 7 floats (should these be normalized? I think so)
+				self.side2move = tf.placeholder(tf.bool, shape=[None, 1], name='Side To Move')#1 bit (everything is really just floats)
+				self.castlingRights = tf.placeholder(tf.bool, shape=[None, 4], name='Castling Rights')#4 bits
+				self.numOfEachPieceType = tf.placeholder(tf.float32, shape=[None, 7], name = 'Number of Each Piece Type')#array of 7 floats (should these be normalized? I think so)
 
 
+				globalFeats = tf.concat([self.side2move, self.castlingRights, self.numOfEachPieceType], 1, name='Global Features')
+				
 				#global hidden layer
+				weights =  tf.get_variable('Weights 1', dtype='float32')
+				bais = tf.get_variable('Bias 1', dtype='float32')
+				gHidden1 = tf.nn.relu(tf.matmul(globalFeats, weights)+bias, name='Global Hidden Layer 1')
+
 
 
 			#piece-centric variables
@@ -44,6 +50,10 @@ class ProbNet:
 
 			#square-centric variables
 			with tf.variable_scope('Sqaure-Centric Variables'):
+				lowValAttacker = #12 by 12 array of lowest value attacker (float or one hot?)
+				lowValDefender = #12 by 12 array of lowest value defender (float or one hot?)
+				moveStartingSquare = #two floats (x and y)
+				moveEndingSquare = #two floats (x and y)
 
 				#square-centric hidden layer
 
