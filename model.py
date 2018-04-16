@@ -7,11 +7,19 @@ class ProbNet:
 
 	def __init__(self):
 		#define quantity and size of each hidden layer
+		self.gHidden1OutputSize = 
+		self.pHidden1OutputSize = 
+		self.sHidden1OutputSize =
+		self.hidden2OutputSize = 
 
 		#define AdaDelta optimizer
 
 		#create all layers of network including loss
 		self.loss = createNetwork()
+
+	def createWeight(self, name, shape='None'):
+		initializer = tf.contrib.layers.variance_scaling_initializer()
+		return tf.get_variable(name, shape, dtype='float32')
 
 	def createNetwork():
 		with tf.variable_scope('ProbNet'):
@@ -23,35 +31,39 @@ class ProbNet:
 			with tf.variable_scope('Global Variables'):
 				self.side2move = tf.placeholder(tf.bool, shape=[None, 1], name='Side To Move')#1 bit (everything is really just floats)
 				self.castlingRights = tf.placeholder(tf.bool, shape=[None, 4], name='Castling Rights')#4 bits
-				self.numOfEachPieceType = tf.placeholder(tf.float32, shape=[None, 7], name = 'Number of Each Piece Type')#array of 7 floats (should these be normalized? I think so)
-
+				self.numOfEachPieceType = tf.placeholder(tf.float32, shape=[None, 10], name = 'Number of Each Piece Type')#array of 10 floats, excluding kings (should these be normalized? I think so)
 
 				globalFeats = tf.concat([self.side2move, self.castlingRights, self.numOfEachPieceType], 1, name='Global Features')
 				
 				#global hidden layer
-				weights =  tf.get_variable('Weights 1', dtype='float32')
-				bais = tf.get_variable('Bias 1', dtype='float32')
-				gHidden1 = tf.nn.relu(tf.matmul(globalFeats, weights)+bias, name='Global Hidden Layer 1')
-
+				#gWeights1 =  self.createWeight('Weights 1')
+				#gBais1 = self.createWeight('Bias 1')
+				gHidden1 = tf.layers.dense(globalFeats, self.gHidden1OutputSize, name='Global Hidden Layer 1', activation='relu', kernel_initializer=tf.contrib.layers.variance_scaling_initializer())
 
 
 			#piece-centric variables
 			with tf.variable_scope('Piece-Centric Variables'):
-				pieceIsPresent = # array of 48 bits
-				xyPosition = #array of 48 by 2 normalized floats (choose -1 if not present?)
-				lowValAttacker = #array of 48 normalized floats (representing value of attacker??)
-				lowValDefender = #array of 48 normalized floats (representing value of defender??)
-				maxTravelDistance = #array of 14 floats (normalized)
-				movePieceType = #one hot array of size 6
-				pawnPromoType = #one hot array of size 7 (extra spot for when there is no pawn promotion, or should the vector be zero then?)
+				self.pieceIsPresent = # array of 48 bits
+				self.xyPosition = #array of 48 by 2 normalized floats (choose -1 if not present?)
+				self.pieceLowValAttacker = #array of 48 normalized floats (representing value of attacker??)
+				self.pieceLowValDefender = #array of 48 normalized floats (representing value of defender??)
+				self.maxTravelDistance = #array of 14 floats (normalized)
+				self.movePieceType = #one hot array of size 6
+				self.pawnPromoType = #one hot array of size 7 (extra spot for when there is no pawn promotion, or should the vector be zero then?)
+
+				pieceFeats = tf.concat([self.pieceIsPresent, self.xyPosition, self.pieceLowValAttacker, 
+					self.pieceLowValDefender, self.maxTravelDistance, self.maxTravelDistance, self.movePieceType, 
+					self.pawnPromoType], 1, name='Piece-Centric Features')
 
 				#piece-centric hidden layer
-
+				#gWeights1 =  self.createWeight('Weights 1')
+				#gBais1 = self.createWeight('Bias 1')
+				pHidden1 = tf.layers.dense(pieceFeats, self.pHidden1OutputSize, name='Global Hidden Layer 1', activation='relu', kernel_initializer=tf.contrib.layers.variance_scaling_initializer())
 
 			#square-centric variables
 			with tf.variable_scope('Sqaure-Centric Variables'):
-				lowValAttacker = #12 by 12 array of lowest value attacker (float or one hot?)
-				lowValDefender = #12 by 12 array of lowest value defender (float or one hot?)
+				squareLowValAttacker = #12 by 12 array of lowest value attacker (float or one hot?)
+				squareLowValDefender = #12 by 12 array of lowest value defender (float or one hot?)
 				moveStartingSquare = #two floats (x and y)
 				moveEndingSquare = #two floats (x and y)
 
