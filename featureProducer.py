@@ -299,7 +299,6 @@ def fen2Features(fen):
                  'labels':label}]
     possibleMoves = list(board.pseudo_legal_moves)
     possibleMoves.append(nullMove)
-    possibleMoves = [random.choice(possibleMoves)]
     if possibleMoves[0] != bestMove: possibleMoves.append(bestMove)
     for move in possibleMoves:
         globalFeatures = calcGlobalFeatures(board)
